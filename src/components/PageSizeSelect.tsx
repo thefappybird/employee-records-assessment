@@ -1,21 +1,20 @@
 import { useEmployeeUIStore } from '../store/employeeUIStore';
 import { PAGE_SIZE_OPTIONS } from '../utils/helpers';
 
-// Row-limit control — lets a smaller dataset still visibly exercise virtualization (e.g. limit 50).
+// Compact row-limit control — sits beside the "Showing X–Y of Z" range text in Pagination.
+// Lets a smaller dataset still visibly exercise virtualization (e.g. a limit of 50).
 export default function PageSizeSelect() {
   const pageSize = useEmployeeUIStore((state) => state.pageSize);
   const setPageSize = useEmployeeUIStore((state) => state.setPageSize);
 
   return (
-    <div className="flex items-center gap-2 rounded-none border border-slate-blue/40 bg-white px-3 py-2 text-sm text-dark-slate">
-      <label htmlFor="page-size" className="text-slate-blue">
-        Show
-      </label>
+    <div className="relative inline-flex items-center">
       <select
         id="page-size"
+        aria-label="Rows per page"
         value={pageSize}
         onChange={(event) => setPageSize(Number(event.target.value))}
-        className="bg-white text-dark-slate focus:outline-none"
+        className="appearance-none rounded-btn border border-slate-blue/40 bg-white py-1.5 pl-3 pr-7 text-sm font-medium text-dark-slate focus:border-primary-teal focus:outline-none"
       >
         {PAGE_SIZE_OPTIONS.map((size) => (
           <option key={size} value={size}>
@@ -23,7 +22,9 @@ export default function PageSizeSelect() {
           </option>
         ))}
       </select>
-      <span className="text-slate-blue">per page</span>
+      <span aria-hidden="true" className="pointer-events-none absolute right-2.5 text-xs text-slate-blue">
+        ▾
+      </span>
     </div>
   );
 }

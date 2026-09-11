@@ -8,8 +8,8 @@ export default function TableSkeleton() {
   return (
     <div className="overflow-hidden rounded-none border border-slate-blue/20 bg-white">
       {/* Desktop skeleton — mirrors the real grid layout so there's no reflow on data arrival. */}
-      <div className="hidden sm:block">
-        <div className="grid grid-cols-[60px_1.5fr_2fr_1fr_1.3fr_1fr_auto] gap-3 border-b border-slate-blue/30 bg-soft-gray px-4 py-2">
+      <div className="hidden min-[769px]:block">
+        <div className="grid grid-cols-[60px_1.5fr_2fr_1fr_1.3fr_1fr_auto] justify-items-start gap-3 border-b border-slate-blue/30 bg-soft-gray px-4 py-2 text-left">
           {['ID', 'Name', 'Email', 'Department', 'Role', 'Status', 'Actions'].map((label) => (
             <span key={label} className="text-xs font-semibold uppercase tracking-wide text-slate-blue">
               {label}
@@ -19,7 +19,7 @@ export default function TableSkeleton() {
         {Array.from({ length: SKELETON_ROW_COUNT }).map((_, index) => (
           <div
             key={index}
-            className="grid h-14 grid-cols-[60px_1.5fr_2fr_1fr_1.3fr_1fr_auto] items-center gap-3 border-b border-slate-blue/15 px-4"
+            className="grid h-14 grid-cols-[60px_1.5fr_2fr_1fr_1.3fr_1fr_auto] items-center justify-items-start gap-3 border-b border-slate-blue/15 px-4"
           >
             <span className={`${bone} h-4 w-6`} />
             <span className={`${bone} h-4 w-28`} />
@@ -36,7 +36,7 @@ export default function TableSkeleton() {
       </div>
 
       {/* Mobile skeleton — mirrors the card layout. */}
-      <div className="flex flex-col gap-3 p-3 sm:hidden">
+      <div className="flex flex-col gap-3 p-3 min-[769px]:hidden">
         {Array.from({ length: 4 }).map((_, index) => (
           <div key={index} className="rounded-none border border-slate-blue/15 p-3">
             <div className="mb-2 flex items-center justify-between">

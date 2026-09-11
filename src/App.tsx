@@ -2,9 +2,9 @@ import { lazy, Suspense, useMemo } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import SearchBar from './components/SearchBar';
 import FilterPanel from './components/FilterPanel';
-import PageSizeSelect from './components/PageSizeSelect';
 import EmployeeTable from './components/EmployeeTable';
 import Pagination from './components/Pagination';
+import ToastContainer from './components/ToastContainer';
 import Modal from './components/Modal';
 import ConfirmDialog from './components/ConfirmDialog';
 import Loading from './components/Loading';
@@ -16,6 +16,7 @@ import {
   useUpdateEmployeeMutation,
 } from './hooks/useEmployees';
 import { useEmployeeFilters } from './hooks/useEmployeeFilters';
+import { useToastStore } from './store/toastStore';
 import { exportToCSV, exportToJSON } from './utils/exportUtils';
 import type { NewEmployeeInput } from './types/employee';
 
@@ -39,6 +40,8 @@ function EmployeeRecordsApp() {
   const openCreateModal = useEmployeeUIStore((state) => state.openCreateModal);
   const closeFormModal = useEmployeeUIStore((state) => state.closeFormModal);
   const cancelDelete = useEmployeeUIStore((state) => state.cancelDelete);
+  const setCurrentPage = useEmployeeUIStore((state) => state.setCurrentPage);
+  const addToast = useToastStore((state) => state.addToast);
 
   const createMutation = useCreateEmployeeMutation();
   const updateMutation = useUpdateEmployeeMutation();
@@ -58,15 +61,35 @@ function EmployeeRecordsApp() {
 
   const handleFormSubmit = (input: NewEmployeeInput) => {
     if (formMode === 'create') {
-      createMutation.mutate(input, { onSuccess: closeFormModal });
+      createMutation.mutate(input, {
+        onSuccess: () => {
+          closeFormModal();
+          // Newest-first sort means page 1 is where the new record actually lands.
+          setCurrentPage(1);
+          addToast('Employee created successfully.', 'success');
+        },
+      });
     } else if (editingEmployeeId != null) {
-      updateMutation.mutate({ id: editingEmployeeId, input }, { onSuccess: closeFormModal });
+      updateMutation.mutate(
+        { id: editingEmployeeId, input },
+        {
+          onSuccess: () => {
+            closeFormModal();
+            addToast('Employee updated successfully.', 'success');
+          },
+        },
+      );
     }
   };
 
   const handleConfirmDelete = () => {
     if (deleteConfirmId != null) {
-      deleteMutation.mutate(deleteConfirmId, { onSuccess: cancelDelete });
+      deleteMutation.mutate(deleteConfirmId, {
+        onSuccess: () => {
+          cancelDelete();
+          addToast('Employee deleted successfully.', 'delete');
+        },
+      });
     }
   };
 
@@ -83,7 +106,6 @@ function EmployeeRecordsApp() {
         <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
           <SearchBar />
           <FilterPanel />
-          <PageSizeSelect />
         </div>
         <div className="flex shrink-0 gap-2">
           <button
@@ -153,6 +175,8 @@ function EmployeeRecordsApp() {
         onCancel={cancelDelete}
         isConfirming={deleteMutation.isPending}
       />
+
+      <ToastContainer />
     </div>
   );
 }

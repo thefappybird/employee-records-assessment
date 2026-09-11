@@ -104,7 +104,8 @@ function makeError(config: InternalAxiosRequestConfig, status: number, message: 
 
 // Simulated REST handler backed by the in-memory array above.
 export const fakeAdapter: AxiosAdapter = async (config) => {
-  await new Promise((resolve) => setTimeout(resolve, 150 + Math.random() * 150));
+  // Fixed (not randomized) so the loading/skeleton states are actually visible during a demo.
+  await new Promise((resolve) => setTimeout(resolve, 500));
 
   const method = (config.method ?? 'get').toLowerCase();
   const path = stripBase(config.url ?? '');

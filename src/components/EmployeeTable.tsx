@@ -25,6 +25,9 @@ interface EmployeeRowProps {
 }
 
 const ROW_HEIGHT = 56;
+// Keep the action track fixed: an `auto` track is narrower for the header label than for
+// the row's Edit/Delete controls, which makes the fractional column widths diverge.
+const GRID_COLUMNS = 'grid-cols-[60px_1.5fr_2fr_1fr_1.3fr_1fr_94px]';
 
 // Primitive props only, so React.memo's shallow comparison actually skips re-renders.
 const EmployeeRow = memo(function EmployeeRow({
@@ -41,7 +44,7 @@ const EmployeeRow = memo(function EmployeeRow({
 
   return (
     <div
-      className="grid grid-cols-[60px_1.5fr_2fr_1fr_1.3fr_1fr_auto] items-center gap-3 border-b border-slate-blue/15 px-4 text-sm text-dark-slate"
+      className={`grid ${GRID_COLUMNS} items-center justify-items-start gap-3 border-b border-slate-blue/15 px-4 text-left text-sm text-dark-slate`}
       style={{ height: ROW_HEIGHT }}
     >
       <span>{id}</span>
@@ -165,17 +168,23 @@ export default function EmployeeTable({
 
   return (
     <div className="overflow-hidden rounded-none border border-slate-blue/20 bg-white">
-      <div className="hidden grid-cols-[60px_1.5fr_2fr_1fr_1.3fr_1fr_auto] gap-3 border-b border-slate-blue/30 bg-soft-gray px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-blue sm:grid">
-        <span>ID</span>
-        <span>Name</span>
-        <span>Email</span>
-        <span>Department</span>
-        <span>Role</span>
-        <span>Status</span>
-        <span>Actions</span>
-      </div>
-      <div ref={scrollRef} className="max-h-[520px] overflow-y-auto">
-        <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
+      {/* Header lives inside the same scroll container as the rows (not a sibling) so both share
+          the exact same content width — a header outside the scrollbar's width would drift out of
+          alignment with the rows the further right a column sits. */}
+      <div ref={scrollRef} className="max-h-[520px] overflow-auto">
+        <div className="min-[769px]:min-w-[1120px]">
+          <div
+            className={`sticky top-0 z-10 hidden ${GRID_COLUMNS} items-center justify-items-start gap-3 border-b border-slate-blue/30 bg-soft-gray px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-slate-blue min-[769px]:grid`}
+          >
+            <span>ID</span>
+            <span>Name</span>
+            <span>Email</span>
+            <span>Department</span>
+            <span>Role</span>
+            <span>Status</span>
+            <span>Actions</span>
+          </div>
+          <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
           {virtualItems.map((virtualRow) => {
             const employee = employees[virtualRow.index];
             return (
@@ -186,7 +195,7 @@ export default function EmployeeTable({
                 className="absolute left-0 top-0 w-full"
                 style={{ transform: `translateY(${virtualRow.start}px)` }}
               >
-                <div className="hidden sm:block">
+                <div className="hidden min-[769px]:block">
                   <EmployeeRow
                     id={employee.id}
                     firstName={employee.firstName}
@@ -197,7 +206,7 @@ export default function EmployeeTable({
                     status={employee.status}
                   />
                 </div>
-                <div className="p-2 sm:hidden">
+                <div className="p-2 min-[769px]:hidden">
                   <EmployeeCard
                     id={employee.id}
                     firstName={employee.firstName}
@@ -211,6 +220,7 @@ export default function EmployeeTable({
               </div>
             );
           })}
+          </div>
         </div>
       </div>
     </div>

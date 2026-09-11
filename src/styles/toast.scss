@@ -1,0 +1,31 @@
+// Toast animations — keyframes aren't expressible as Tailwind utilities, so they live here (per CLAUDE.md).
+
+@keyframes toast-slide-in {
+  from {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes toast-timer-shrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+.toast-slide-in {
+  animation: toast-slide-in 0.3s ease-out;
+}
+
+.toast-timer-bar {
+  animation-name: toast-timer-shrink;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}

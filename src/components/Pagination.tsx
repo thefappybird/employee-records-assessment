@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useEmployeeUIStore } from '../store/employeeUIStore';
+import PageSizeSelect from './PageSizeSelect';
 
 interface PaginationProps {
   totalCount: number;
@@ -36,9 +37,12 @@ export default function Pagination({ totalCount, totalPages }: PaginationProps) 
 
   return (
     <div className="flex flex-col items-center justify-between gap-3 border-t border-slate-blue/20 pt-3 sm:flex-row">
-      <p className="text-sm text-slate-blue">
-        Showing {rangeStart}–{rangeEnd} of {totalCount}
-      </p>
+      <div className="flex items-center gap-2">
+        <PageSizeSelect />
+        <p className="text-sm text-slate-blue">
+          Showing {rangeStart}–{rangeEnd} of {totalCount}
+        </p>
+      </div>
       <div className="flex items-center gap-2">
         <button
           type="button"

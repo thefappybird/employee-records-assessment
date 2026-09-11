@@ -20,18 +20,21 @@ export function useEmployeeFilters(employees: Employee[]): EmployeeFiltersResult
   const filteredAll = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
 
-    return employees.filter((employee) => {
-      const matchesSearch =
-        term.length === 0 ||
-        getFullName(employee).toLowerCase().includes(term) ||
-        employee.email.toLowerCase().includes(term) ||
-        employee.role.toLowerCase().includes(term);
+    return employees
+      .filter((employee) => {
+        const matchesSearch =
+          term.length === 0 ||
+          getFullName(employee).toLowerCase().includes(term) ||
+          employee.email.toLowerCase().includes(term) ||
+          employee.role.toLowerCase().includes(term);
 
-      const matchesDepartment =
-        selectedDepartments.length === 0 || selectedDepartments.includes(employee.department);
+        const matchesDepartment =
+          selectedDepartments.length === 0 || selectedDepartments.includes(employee.department);
 
-      return matchesSearch && matchesDepartment;
-    });
+        return matchesSearch && matchesDepartment;
+      })
+      // Newest first, so a just-created employee lands on page 1 instead of the end of the list.
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [employees, searchTerm, selectedDepartments]);
 
   const totalCount = filteredAll.length;
