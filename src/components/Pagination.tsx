@@ -5,12 +5,12 @@ import { useEmployeeUIStore } from '../store/employeeUIStore';
 interface PaginationProps {
   totalCount: number;
   totalPages: number;
-  pageSize: number;
 }
 
-// Next/prev/jump controls; page state lives in the UI store, not here.
-export default function Pagination({ totalCount, totalPages, pageSize }: PaginationProps) {
+// Next/prev/jump controls; page state (including page size) lives in the UI store, not here.
+export default function Pagination({ totalCount, totalPages }: PaginationProps) {
   const currentPage = useEmployeeUIStore((state) => state.currentPage);
+  const pageSize = useEmployeeUIStore((state) => state.pageSize);
   const setCurrentPage = useEmployeeUIStore((state) => state.setCurrentPage);
   const [jumpValue, setJumpValue] = useState('');
 

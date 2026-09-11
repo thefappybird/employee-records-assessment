@@ -1,29 +1,34 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import type { Employee, NewEmployeeInput } from '../types/employee';
 import { DEPARTMENTS, ROLES, EMPLOYEE_STATUSES } from '../types/employee';
-import { sanitizeText, validateEmployeeInput } from '../utils/sanitize';
+import { sanitizeText, validateEmployeeInput, isDuplicateEmail } from '../utils/sanitize';
 
 interface EmployeeFormProps {
   mode: 'create' | 'edit';
   employee?: Employee;
+  existingEmails: string[];
   onSubmit: (input: NewEmployeeInput) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
   submitError?: string | null;
 }
 
-type FieldErrors = Partial<Record<keyof NewEmployeeInput, string>>;
+type FieldName = keyof NewEmployeeInput;
+type TouchedFields = Partial<Record<FieldName, boolean>>;
 
 const inputClass =
   'w-full rounded-btn border border-slate-blue/40 bg-white px-3 py-2 text-dark-slate focus:border-primary-teal focus:outline-none focus:ring-1 focus:ring-primary-teal';
+const inputErrorClass = 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-400';
 const labelClass = 'mb-1 block text-sm font-medium text-dark-slate';
 const errorClass = 'mt-1 text-sm text-red-600';
+const requiredMark = <span className="text-red-600"> *</span>;
 
-// Create/edit form: local per-field state, client-side validation before calling onSubmit.
+// Create/edit form: local per-field state, errors derived (not duplicated), validated before onSubmit.
 export default function EmployeeForm({
   mode,
   employee,
+  existingEmails,
   onSubmit,
   onCancel,
   isSubmitting = false,
@@ -35,27 +40,41 @@ export default function EmployeeForm({
   const [department, setDepartment] = useState(employee?.department ?? DEPARTMENTS[0]);
   const [role, setRole] = useState(employee?.role ?? ROLES[0]);
   const [status, setStatus] = useState(employee?.status ?? EMPLOYEE_STATUSES[0]);
-  const [errors, setErrors] = useState<FieldErrors>({});
+  const [touched, setTouched] = useState<TouchedFields>({});
+  const [submitAttempted, setSubmitAttempted] = useState(false);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    const candidate: NewEmployeeInput = {
+  const candidate: NewEmployeeInput = useMemo(
+    () => ({
       firstName: sanitizeText(firstName),
       lastName: sanitizeText(lastName),
       email: sanitizeText(email),
       department,
       role,
       status,
-    };
+    }),
+    [firstName, lastName, email, department, role, status],
+  );
 
-    const fieldErrors = validateEmployeeInput(candidate);
+  // Derived, not stored — recomputes on every keystroke; `touched`/`submitAttempted` gate what's shown.
+  const fieldErrors = useMemo(() => {
+    const errors = validateEmployeeInput(candidate);
+    if (!errors.email && isDuplicateEmail(candidate.email, existingEmails)) {
+      errors.email = 'An employee with this email already exists.';
+    }
+    return errors;
+  }, [candidate, existingEmails]);
+
+  const shouldShow = (field: FieldName) => Boolean((touched[field] || submitAttempted) && fieldErrors[field]);
+  const markTouched = (field: FieldName) => () => setTouched((prev) => ({ ...prev, [field]: true }));
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSubmitAttempted(true);
+
     if (Object.keys(fieldErrors).length > 0) {
-      setErrors(fieldErrors);
       return;
     }
 
-    setErrors({});
     onSubmit(candidate);
   };
 
@@ -69,49 +88,55 @@ export default function EmployeeForm({
 
       <div className="mb-3">
         <label htmlFor="firstName" className={labelClass}>
-          First Name
+          First Name{requiredMark}
         </label>
         <input
           id="firstName"
           type="text"
           value={firstName}
           onChange={(event) => setFirstName(event.target.value)}
-          className={inputClass}
+          onBlur={markTouched('firstName')}
+          aria-invalid={shouldShow('firstName')}
+          className={`${inputClass} ${shouldShow('firstName') ? inputErrorClass : ''}`}
         />
-        {errors.firstName && <p className={errorClass}>{errors.firstName}</p>}
+        {shouldShow('firstName') && <p className={errorClass}>{fieldErrors.firstName}</p>}
       </div>
 
       <div className="mb-3">
         <label htmlFor="lastName" className={labelClass}>
-          Last Name
+          Last Name{requiredMark}
         </label>
         <input
           id="lastName"
           type="text"
           value={lastName}
           onChange={(event) => setLastName(event.target.value)}
-          className={inputClass}
+          onBlur={markTouched('lastName')}
+          aria-invalid={shouldShow('lastName')}
+          className={`${inputClass} ${shouldShow('lastName') ? inputErrorClass : ''}`}
         />
-        {errors.lastName && <p className={errorClass}>{errors.lastName}</p>}
+        {shouldShow('lastName') && <p className={errorClass}>{fieldErrors.lastName}</p>}
       </div>
 
       <div className="mb-3">
         <label htmlFor="email" className={labelClass}>
-          Email
+          Email{requiredMark}
         </label>
         <input
           id="email"
           type="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          className={inputClass}
+          onBlur={markTouched('email')}
+          aria-invalid={shouldShow('email')}
+          className={`${inputClass} ${shouldShow('email') ? inputErrorClass : ''}`}
         />
-        {errors.email && <p className={errorClass}>{errors.email}</p>}
+        {shouldShow('email') && <p className={errorClass}>{fieldErrors.email}</p>}
       </div>
 
       <div className="mb-3">
         <label htmlFor="department" className={labelClass}>
-          Department
+          Department{requiredMark}
         </label>
         <select
           id="department"
@@ -129,7 +154,7 @@ export default function EmployeeForm({
 
       <div className="mb-3">
         <label htmlFor="role" className={labelClass}>
-          Role
+          Role{requiredMark}
         </label>
         <select
           id="role"
@@ -147,7 +172,7 @@ export default function EmployeeForm({
 
       <div className="mb-5">
         <label htmlFor="status" className={labelClass}>
-          Status
+          Status{requiredMark}
         </label>
         <select
           id="status"

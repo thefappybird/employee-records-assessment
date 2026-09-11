@@ -2,6 +2,7 @@ import { lazy, Suspense, useMemo } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import SearchBar from './components/SearchBar';
 import FilterPanel from './components/FilterPanel';
+import PageSizeSelect from './components/PageSizeSelect';
 import EmployeeTable from './components/EmployeeTable';
 import Pagination from './components/Pagination';
 import Modal from './components/Modal';
@@ -16,7 +17,6 @@ import {
 } from './hooks/useEmployees';
 import { useEmployeeFilters } from './hooks/useEmployeeFilters';
 import { exportToCSV, exportToJSON } from './utils/exportUtils';
-import { PAGE_SIZE } from './utils/helpers';
 import type { NewEmployeeInput } from './types/employee';
 
 // EmployeeForm is the one clearly-justified code-split target (Section 9) — only needed once a modal opens.
@@ -49,6 +49,11 @@ function EmployeeRecordsApp() {
     () => employees.find((employee) => employee.id === editingEmployeeId),
     [employees, editingEmployeeId],
   );
+  // Every other employee's email — lets the form flag a duplicate instantly, without waiting on the 409.
+  const existingEmails = useMemo(
+    () => employees.filter((employee) => employee.id !== editingEmployeeId).map((employee) => employee.email),
+    [employees, editingEmployeeId],
+  );
   const activeMutation = formMode === 'create' ? createMutation : updateMutation;
 
   const handleFormSubmit = (input: NewEmployeeInput) => {
@@ -78,6 +83,7 @@ function EmployeeRecordsApp() {
         <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
           <SearchBar />
           <FilterPanel />
+          <PageSizeSelect />
         </div>
         <div className="flex shrink-0 gap-2">
           <button
@@ -117,7 +123,7 @@ function EmployeeRecordsApp() {
       />
 
       <div className="mt-4">
-        <Pagination totalCount={totalCount} totalPages={totalPages} pageSize={PAGE_SIZE} />
+        <Pagination totalCount={totalCount} totalPages={totalPages} />
       </div>
 
       {isFormModalOpen && (
@@ -130,6 +136,7 @@ function EmployeeRecordsApp() {
             <EmployeeForm
               mode={formMode}
               employee={editingEmployee}
+              existingEmails={existingEmails}
               onSubmit={handleFormSubmit}
               onCancel={closeFormModal}
               isSubmitting={activeMutation.isPending}

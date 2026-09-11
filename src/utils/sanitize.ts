@@ -18,6 +18,21 @@ export function isValidEmail(email: string): boolean {
   return EMAIL_REGEX.test(email);
 }
 
+// Letters, spaces, hyphens, and apostrophes only — no digits or other special characters,
+// and no leading/trailing space/hyphen/apostrophe.
+const NAME_REGEX = /^[A-Za-z](?:[A-Za-z' -]*[A-Za-z])?$/;
+
+export function isValidName(name: string): boolean {
+  return NAME_REGEX.test(name);
+}
+
+// Case-insensitive membership check against already-fetched employees — no extra network round trip.
+export function isDuplicateEmail(email: string, existingEmails: string[]): boolean {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) return false;
+  return existingEmails.some((existing) => existing.trim().toLowerCase() === normalized);
+}
+
 // Field -> error message map; empty object means valid.
 export function validateEmployeeInput(
   input: NewEmployeeInput
@@ -28,8 +43,17 @@ export function validateEmployeeInput(
   const lastName = sanitizeText(input.lastName);
   const email = sanitizeText(input.email);
 
-  if (!firstName) errors.firstName = 'First name is required.';
-  if (!lastName) errors.lastName = 'Last name is required.';
+  if (!firstName) {
+    errors.firstName = 'First name is required.';
+  } else if (!isValidName(firstName)) {
+    errors.firstName = 'Only letters, spaces, hyphens, and apostrophes are allowed.';
+  }
+
+  if (!lastName) {
+    errors.lastName = 'Last name is required.';
+  } else if (!isValidName(lastName)) {
+    errors.lastName = 'Only letters, spaces, hyphens, and apostrophes are allowed.';
+  }
 
   if (!email) {
     errors.email = 'Email is required.';

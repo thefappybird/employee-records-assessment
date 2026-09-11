@@ -1,11 +1,13 @@
 import { create } from 'zustand';
 import type { Department } from '../types/employee';
+import { DEFAULT_PAGE_SIZE } from '../utils/helpers';
 
 // UI-only state: search/filter/pagination/modal state. Never mutates server data directly.
 interface EmployeeUIState {
   searchTerm: string;
   selectedDepartments: Department[];
   currentPage: number;
+  pageSize: number;
   isFormModalOpen: boolean;
   editingEmployeeId: number | null;
   deleteConfirmId: number | null;
@@ -14,6 +16,7 @@ interface EmployeeUIState {
   toggleDepartment: (dept: Department) => void;
   clearDepartmentFilter: () => void;
   setCurrentPage: (page: number) => void;
+  setPageSize: (size: number) => void;
   openCreateModal: () => void;
   openEditModal: (id: number) => void;
   closeFormModal: () => void;
@@ -28,6 +31,7 @@ export const useEmployeeUIStore = create<EmployeeUIState>((set) => ({
   searchTerm: '',
   selectedDepartments: EMPTY_DEPARTMENTS,
   currentPage: 1,
+  pageSize: DEFAULT_PAGE_SIZE,
   isFormModalOpen: false,
   editingEmployeeId: null,
   deleteConfirmId: null,
@@ -42,6 +46,7 @@ export const useEmployeeUIStore = create<EmployeeUIState>((set) => ({
     })),
   clearDepartmentFilter: () => set({ selectedDepartments: EMPTY_DEPARTMENTS, currentPage: 1 }),
   setCurrentPage: (page) => set({ currentPage: page }),
+  setPageSize: (size) => set({ pageSize: size, currentPage: 1 }),
   openCreateModal: () => set({ isFormModalOpen: true, editingEmployeeId: null }),
   openEditModal: (id) => set({ isFormModalOpen: true, editingEmployeeId: id }),
   closeFormModal: () => set({ isFormModalOpen: false, editingEmployeeId: null }),

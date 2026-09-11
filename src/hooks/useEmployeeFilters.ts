@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import type { Employee } from '../types/employee';
 import { useEmployeeUIStore } from '../store/employeeUIStore';
-import { PAGE_SIZE, getFullName } from '../utils/helpers';
+import { getFullName } from '../utils/helpers';
 
 interface EmployeeFiltersResult {
   pageItems: Employee[];
@@ -15,6 +15,7 @@ export function useEmployeeFilters(employees: Employee[]): EmployeeFiltersResult
   const searchTerm = useEmployeeUIStore((state) => state.searchTerm);
   const selectedDepartments = useEmployeeUIStore((state) => state.selectedDepartments);
   const currentPage = useEmployeeUIStore((state) => state.currentPage);
+  const pageSize = useEmployeeUIStore((state) => state.pageSize);
 
   const filteredAll = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
@@ -34,13 +35,13 @@ export function useEmployeeFilters(employees: Employee[]): EmployeeFiltersResult
   }, [employees, searchTerm, selectedDepartments]);
 
   const totalCount = filteredAll.length;
-  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   const pageItems = useMemo(() => {
     const safePage = Math.min(currentPage, totalPages);
-    const start = (safePage - 1) * PAGE_SIZE;
-    return filteredAll.slice(start, start + PAGE_SIZE);
-  }, [filteredAll, currentPage, totalPages]);
+    const start = (safePage - 1) * pageSize;
+    return filteredAll.slice(start, start + pageSize);
+  }, [filteredAll, currentPage, totalPages, pageSize]);
 
   return { pageItems, filteredAll, totalCount, totalPages };
 }
