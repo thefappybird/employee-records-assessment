@@ -44,6 +44,10 @@
   <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" height="40" alt="javascript logo"  />
   <img width="12" />
   <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg" height="40" alt="typescript logo"  />
+  <img width="12" />
+  <img src="https://devicons.io/devicons/icons/react-query-icon.svg" height="40" alt="typescript logo"  />
+  <img width="12" />
+  <img src="https://devicons.io/devicons/icons/axios.svg" height="40" alt="typescript logo"  />
 </div>
 
 ###
@@ -52,9 +56,11 @@
 
 ###
 
-<p align="left">This repo is my submission for the React front-end technical assessment: a modular <strong>Employee Records</strong> management app built with React 19, TypeScript, and Vite. It covers the full brief — a searchable, filterable, paginated employee table; create/edit/delete with validation and confirmation; CSV/JSON export; and the two heavily-weighted focus areas, <strong>performance</strong> (virtualized rendering via TanStack Virtual, memoized rows, derived-not-duplicated filter/pagination state) and <strong>security</strong> (client-side input sanitization, CSV formula-injection neutralization, no <code>dangerouslySetInnerHTML</code>, no hardcoded secrets).</p>
+<p align="left">This repository is my submission for the React front-end technical assessment: a modular <strong>Employee Records</strong> management app built with React 19, TypeScript, Vite, Tailwind CSS, Sass, TanStack Query, TanStack Virtual, Zustand, and Axios. It supports the full employee workflow: search and multi-select department filtering, newest-first pagination with selectable page sizes, create/edit/delete actions, CSV/JSON export, inline form validation, confirmation dialogs, and toast feedback for successful changes.</p>
 
-<p align="left">Data is served through a typed service layer backed by an in-memory mock REST API (a custom axios adapter, not a real network call) so the whole app still runs from a single <code>npm run dev</code> with no separate backend process, while still exercising genuine async loading/success/error states through TanStack Query.</p>
+<p align="left">Employee data is served through a typed service layer backed by an in-memory mock REST API implemented as a custom Axios adapter. The application remains a single-process front-end with no environment variables or separate backend, while preserving genuine asynchronous loading, success, and error states through TanStack Query. Changes persist for the active browser session and reset on refresh or restart.</p>
+
+<p align="left">The current interface is responsive by design: the desktop table uses a sticky header, virtualized rows, aligned fixed action-column sizing, and horizontal scrolling when its 1120px minimum width cannot fit. Below the desktop breakpoint, the same records are shown as mobile cards rather than a compressed table.</p>
 
 ###
 
@@ -78,10 +84,12 @@ npm run dev
 ###
 
 <p align="left">
-- <strong>State management</strong>: Zustand holds UI-only state (search/filter/pagination/modal); TanStack Query owns all server state (fetching, caching, mutations) — the two are never mixed.<br>
-- <strong>Performance</strong>: the employee table is virtualized with TanStack Virtual (only visible rows render); rows are memoized with primitive props; the filtered/paginated list is derived via <code>useMemo</code>, never stored as separate state; search is debounced (300ms) so filtering never runs per keystroke; the create/edit form is code-split with <code>React.lazy</code>.<br>
-- <strong>Security</strong>: all form input is trimmed/normalized and validated client-side before submission; CSV export neutralizes formula injection (cells starting with <code>=</code>, <code>+</code>, <code>-</code>, <code>@</code> are prefixed with a literal <code>'</code>); no <code>dangerouslySetInnerHTML</code> anywhere; no secrets or API keys in client code.<br>
-- <strong>Error & edge cases</strong>: explicit loading/empty/error states, a duplicate-email create attempt surfaces a real error from the mock API, deleting the last item on a page re-clamps pagination instead of rendering blank, and CSV/JSON export both handle an empty filtered result safely.
+- <strong>State management</strong>: TanStack Query owns fetched employee data, caching, and mutations. Zustand owns UI-only state for search, filters, pagination, modal/confirmation state, and the ephemeral toast queue; employee records are never duplicated in Zustand.<br>
+- <strong>Performance</strong>: the employee table is virtualized with TanStack Virtual; rows are memoized with primitive props; filtering, newest-first sorting, and pagination are derived through memoized hooks rather than stored; search is debounced by 300ms; and the form is code-split with <code>React.lazy</code>.<br>
+- <strong>Responsive table behavior</strong>: the desktop header and rows share one grid definition with a fixed actions track, preventing header/body drift. The scroll container owns both axes and preserves the table's 1120px minimum width instead of allowing columns to overlap. Mobile renders accessible employee cards.<br>
+- <strong>Forms and feedback</strong>: create and edit use one validated form with normalization, real-time field feedback, a debounced duplicate-email check, disabled unchanged edits, submit errors, delete confirmation, and dismissible auto-expiring success/delete toasts.<br>
+- <strong>Security</strong>: text input is normalized and validated client-side; duplicate emails are rejected by the mock API with a <code>409</code>; CSV export neutralizes formula injection by prefixing values starting with <code>=</code>, <code>+</code>, <code>-</code>, or <code>@</code>; the app does not use <code>dangerouslySetInnerHTML</code>; and it contains no hardcoded secrets or API keys.<br>
+- <strong>Error and edge cases</strong>: explicit loading, error, empty, and no-results states; a visible 500ms mock request delay; page clamping after deleting the final record on a page; page-size changes that reset to page 1; disabled exports for an empty filtered set; and browser downloads for both CSV and JSON exports.
 </p>
 
 ###
